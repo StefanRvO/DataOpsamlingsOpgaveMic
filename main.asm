@@ -3,12 +3,15 @@
 .equ ADCInterval=31250
 .equ Readings=0x500 ; Here we put in our ADC readings 
 .def CurReading=R24
+.def LastReading=R21
 .org 0x0000
 jmp Reset
 
 .org 0x0012
 jmp T1_OVFLW
 
+.org 0x0002
+jmp INT0_ISR
 .org 0x60
 Reset:
 .include "SetupIO.asm"
@@ -21,7 +24,9 @@ ldi CurReading,0x00
 jmp Main
 
 
-
+INT0_ISR:
+CALL ShowAverage
+reti
 
 T1_OVFLW:
 ldi R19,HIGH(65536-ADCInterval)
@@ -33,15 +38,14 @@ SBI ADCSRA,ADSC ;start conversion
 WAITADC:
 SBIS ADCSRA,ADIF ;is adc done?
 rjmp    WAITADC
-in R21,ADCH
-;NEG R21
-;out PORTB,R21 ;Debug
-lsr R21
-lsr R21
-lsr R21
-lsr R21
-;ANDI R21,0b00001111
-;out PORTB,R21 ;Debug
+in LastReading,ADCH
+;out PORTB,LastReading ;Debug
+lsr LastReading
+lsr LastReading
+lsr LastReading
+lsr LastReading
+;ANDI LastReading,0b00001111
+;out PORTB,LastReading ;Debug
 ldi	ZH,high(Readings)	; make high byte of Z point at the Readings list
 ldi ZL,low(Readings)
 
@@ -54,18 +58,19 @@ inc R18
 ADIW ZL,1
 rjmp Loop
 STOPINC:
-st Z,R21
+st Z,LastReading
 inc CurReading
 cpi CurReading,0x10
 brne ENDT1
 ldi CurReading,0x00
 ENDT1:
+COM LastReading
 reti
 
 
 Main:
-CALL MakeAverage
-out PORTB,R22
+CALL ShowLastReading
+CALL Delay
 jmp Main
 
 
@@ -88,8 +93,21 @@ lsr R22
 ret
 
 
+ShowAverage:
+Call MakeAverage
+COM R22
+out PORTB,R22
+ret
 
+ShowLastReading:
+OUT PORTB,LastReading
+ret
 
-
-ADIW ZL,1;Increase Z pointer
-
+Delay:
+push R17
+ldi R17,0x00
+DelayLoop:
+inc R17
+brne DelayLoop
+pop R17
+ret
