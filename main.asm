@@ -1,11 +1,26 @@
+;######################################################################################
+;###                     Copyright(c) Stefan Ravn van Overeem                       ###
+;######################################################################################
+;######################################################################################
+;###                    Licensed under the BEER-WARE License                        ###
+;### THE BEER-WARE LICENSE" (Revision 42):                                          ###
+;### <stefan@stefanrvo.dk> wrote this file. As long as you retain this notice you   ###
+;### can do whatever you want with this stuff. If we meet some day, and you think   ###
+;### this stuff is worth it, you can buy me a beer in return.                       ###
+;######################################################################################
+;######################################################################################
+;###              Source code is hosted at <http://github.com/StefanRvO>            ###
+;######################################################################################
+
 .include "m32def.inc"
 
 .equ    ADCInterval=31250
 .equ    Readings=0x500 ; Here we put in our ADC readings
 .equ    CurReading=0x498
 .equ    LastReading=0x499
-.org    0x0000
 .equ    ShowState=0x497 ;This Loaction holds our current state
+
+.org    0x0000
 jmp     Reset
 
 .org    0x000E
@@ -14,6 +29,8 @@ jmp     T1_CTC
 .org    0x0002
 jmp     INT0_ISR
 .org    0x60
+
+
 Reset:
 
 .include "SetupIO.asm"
@@ -99,19 +116,6 @@ T1_CTC: ;Read in an ADC value and save it to the Readings array
     pop     R19
 reti
 
-
-Main:
-    lds     R16,ShowState
-    cpi     R16,0x00
-    brne    State2
-    State1:
-    CALL    ShowLastReading
-    rjmp Main
-    State2:
-    CALL    ShowAverage
-    rjmp     Main
-
-
 MakeAverage:  ;Grabs the values in ram and returns the average in R16
               ;Be carefull, changes R16
 
@@ -139,7 +143,7 @@ ret
 
 ShowAverage:
     push    R16
-    Call    MakeAverage
+    CALL    MakeAverage
     CALL    To7Seg
     out     PORTB,R16
     pop     R16
@@ -207,4 +211,17 @@ To7Seg: ;Converts the 4-bit value in R16 to a value which coresponds
     brne    PC+2
     ldi     R16,0b10001110
 ret
+
+
+
+Main:
+    lds     R17,ShowState
+    cpi     R17,0x00
+    brne    State2
+    State1:
+    CALL    ShowLastReading
+    rjmp Main
+    State2:
+    CALL    ShowAverage
+    rjmp     Main
 
