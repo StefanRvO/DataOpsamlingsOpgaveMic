@@ -4,7 +4,8 @@
 .equ Readings=0x500 ; Here we put in our ADC readings
 .equ CurReading=0x498
 ;.def CurReading=R24
-.def LastReading=R21
+;.def LastReading=R21
+.equ LastReading=0x499
 .org 0x0000
 jmp Reset
 
@@ -39,14 +40,14 @@ SBI ADCSRA,ADSC ;start conversion
 WAITADC:
 SBIS ADCSRA,ADIF ;is adc done?
 rjmp    WAITADC
-in LastReading,ADCH
-;out PORTB,LastReading ;Debug
-lsr LastReading
-lsr LastReading
-lsr LastReading
-lsr LastReading
-;ANDI LastReading,0b00001111
-;out PORTB,LastReading ;Debug
+in R19,ADCH
+;out PORTB,R19 ;Debug
+lsr R19
+lsr R19
+lsr R19
+lsr R19
+;ANDI R19,0b00001111
+;out PORTB,R19 ;Debug
 ldi	ZH,high(Readings)	; make high byte of Z point at the Readings list
 ldi ZL,low(Readings)
 
@@ -60,14 +61,14 @@ inc R18
 ADIW ZL,1
 rjmp Loop
 STOPINC:
-st Z,LastReading
+st Z,R19
 inc R17
 cpi R17,0x10
 brne ENDT1
 ldi R17,0x00
 ENDT1:
 sts CurReading,R17
-COM LastReading
+sts LastReading,R19
 reti
 
 
@@ -109,7 +110,11 @@ pop R22
 ret
 
 ShowLastReading:
-OUT PORTB,LastReading
+push R16
+lds R16,LastReading
+Com R16
+OUT PORTB,R16
+pop R16
 ret
 
 Delay:
