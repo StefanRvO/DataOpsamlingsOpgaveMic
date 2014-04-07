@@ -1,8 +1,9 @@
 .include "m32def.inc"
 
 .equ ADCInterval=31250
-.equ Readings=0x500 ; Here we put in our ADC readings 
-.def CurReading=R24
+.equ Readings=0x500 ; Here we put in our ADC readings
+.equ CurReading=0x498
+;.def CurReading=R24
 .def LastReading=R21
 .org 0x0000
 jmp Reset
@@ -20,7 +21,7 @@ Reset:
 .include "SetupADC.asm"
 sei
 ldi R16,0x00
-ldi CurReading,0x00
+sts CurReading,R16
 jmp Main
 
 
@@ -50,7 +51,8 @@ ldi	ZH,high(Readings)	; make high byte of Z point at the Readings list
 ldi ZL,low(Readings)
 
 ldi R18,0x00
-sub R18,CurReading
+lds R17,CurReading
+sub R18,R17
 Loop:
 cpi R18,0x00
 breq STOPINC
@@ -59,11 +61,12 @@ ADIW ZL,1
 rjmp Loop
 STOPINC:
 st Z,LastReading
-inc CurReading
-cpi CurReading,0x10
+inc R17
+cpi R17,0x10
 brne ENDT1
-ldi CurReading,0x00
+ldi R17,0x00
 ENDT1:
+sts CurReading,R17
 COM LastReading
 reti
 
@@ -75,6 +78,8 @@ jmp Main
 
 
 MakeAverage:
+push R18
+push R23
 ldi R22,0x00 ;Here we hold the sum
 ldi	ZH,high(Readings)	; make high byte of Z point at the Readings list
 ldi ZL,low(Readings)
@@ -90,13 +95,17 @@ lsr R22
 lsr R22
 lsr R22
 lsr R22
+pop R23
+pop R18
 ret
 
 
 ShowAverage:
+push R22
 Call MakeAverage
 COM R22
 out PORTB,R22
+pop R22
 ret
 
 ShowLastReading:
@@ -111,3 +120,4 @@ inc R17
 brne DelayLoop
 pop R17
 ret
+
