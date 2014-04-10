@@ -14,3 +14,4 @@ InitADCLoop:
 rjmp InitADCLoop
 
 ENDINITADC:
+sts LastReading,R16
