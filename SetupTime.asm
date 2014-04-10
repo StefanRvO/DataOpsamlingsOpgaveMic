@@ -1,4 +1,4 @@
-.equ WGM12=3 ;Not defined in m32def.inc...?
+
 ldi R16,0
 out TCCR1A,R16
 ldi R16, (1<<CS12) | (1<<WGM12)

@@ -4,7 +4,7 @@ DataOpsamlingsOpgaveMic
 Licensed under the BEER-WARE license
 http://en.wikipedia.org/wiki/Beerware
 
-Dataopsamlingsopgave MIC, Første semester
+Dataopsamlingsopgave MIC. Andet semester
 
 Assebler kode til ATmega32A.
 

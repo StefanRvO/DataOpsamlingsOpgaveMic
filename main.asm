@@ -12,7 +12,7 @@
 ;###              Source code is hosted at <http://github.com/StefanRvO>            ###
 ;######################################################################################
 
-.include "m32def.inc"
+.include "m32Adef.inc"
 
 .equ    ADCInterval=31250
 .equ    Readings=0x500 ; Here we put in our ADC readings
@@ -74,10 +74,6 @@ T1_CTC: ;Read in an ADC value and save it to the Readings array
     push    R17
 
     ;Read In ADC
-    SBI     ADCSRA,ADSC ;start conversion
-    WAITADC:
-        SBIS    ADCSRA,ADIF ;is adc done?
-        rjmp    WAITADC
     in      R19,ADCH
     ;out    PORTB,R19 ;Debug
     lsr     R19
