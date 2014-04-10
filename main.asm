@@ -23,11 +23,13 @@
 .org    0x0000
 jmp     Reset
 
-.org    0x000E
-jmp     T1_CTC
 
 .org    0x0002
 jmp     INT0_ISR
+
+.org    0x000E
+jmp     T1_CTC
+
 .org    0x60
 
 
@@ -37,6 +39,8 @@ Reset:
 .include "SetupStack.asm"
 .include "SetupTime.asm"
 .include "SetupADC.asm"
+.include "ADCAverageStart.asm" ;//Fill all values in the Readings array
+                               ;//With Current ADC value
 
 sei
 ldi     R16,0x00
@@ -66,12 +70,14 @@ INT0_ISR: ;Flip the last bit in ShowState
 reti
 
 
-T1_CTC: ;Read in an ADC value and save it to the Readings array
+T1_CTC: ;Read in an ADC value and save it to the Readings array //The saving to the Readings array is not very efficient.. Doesn't really matter..
     push    R19
     in      R19,SREG
     push    R19
     push    R18
     push    R17
+    push    ZH
+    push    ZL
 
     ;Read In ADC
     in      R19,ADCH
@@ -105,6 +111,8 @@ T1_CTC: ;Read in an ADC value and save it to the Readings array
     ENDT1:
     sts     CurReading,R17
     sts     LastReading,R19
+    pop     ZL
+    pop     ZH
     pop     R17
     pop     R18
     pop     R19
@@ -117,21 +125,25 @@ MakeAverage:  ;Grabs the values in ram and returns the average in R16
 
     push    R18
     push    R23
+    push    ZH
+    push    ZL
     ldi     R16,0x00 ;Here we hold the sum
     ldi	    ZH,high(Readings)	; make high byte of Z point at the Readings list
     ldi     ZL,low(Readings)
     ldi     R18,0x00
     AverageLoop:
-    inc     R18
-    LD	    R23,Z+
-    add     R16,R23
-    ;out    PORTB,R16
-    cpi     R18,0x10
+        inc     R18
+        LD	    R23,Z+
+        add     R16,R23
+        ;out    PORTB,R16
+        cpi     R18,0x10
     brne    AverageLoop
     lsr     R16
     lsr     R16
     lsr     R16
     lsr     R16
+    pop     ZL
+    pop     ZH
     pop     R23
     pop     R18
 ret

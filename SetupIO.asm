@@ -9,6 +9,5 @@ cbi     DDRA,0 ;Set PA0 to input
 ldi R16,(1<<ISC01)
 out MCUCR,R16
 ;Enable external interrupt 0 (PD2)
-SBI	PORTD,2
 ldi	R16,(1<<INT0)
 out	GICR,R16
